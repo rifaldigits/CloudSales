@@ -350,23 +350,23 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    S1[Sales login ke Platform] --> S2[Sales buat / update Quotation -- QUOTATIONS & QUOTATION_ITEMS]
-    S2 --> T1[Trigger n8n: QuotationCreatedOrUpdated]
+    S1["Sales login ke Platform"] --> S2["Sales buat / update Quotation\n(QUOTATIONS & QUOTATION_ITEMS)"]
+    S2 --> T1["Trigger n8n: QuotationCreatedOrUpdated"]
 
     %% AI EMAIL
-    T1 --> AI1[Call Gemini API\nGenerate draft email penawaran]
-    AI1 --> E1[Simpan draft ke EMAIL_LOGS\nstatus = DRAFT]
+    T1 --> AI1["Call Gemini API\nGenerate draft email penawaran"]
+    AI1 --> E1["Simpan draft ke EMAIL_LOGS\nstatus = DRAFT"]
 
-    E1 --> S3[Sales review & klik 'Kirim']
-    S3 --> G1[Send Email via Gmail API\nFrom: akun Sales\nTo: client.contact_email]
-    G1 --> E2[Update EMAIL_LOGS\nstatus = SENT, gmail_message_id]
+    E1 --> S3["Sales review & klik 'Kirim'"]
+    S3 --> G1["Send Email via Gmail API\nFrom: akun Sales\nTo: client.contact_email"]
+    G1 --> E2["Update EMAIL_LOGS\nstatus = SENT, gmail_message_id"]
 
     %% COSMIC MIRROR
-    T1 --> C1[Call Cosmic API\nCreate / update quotation mirror]
-    C1 --> S4[Update QUOTATIONS.cosmic_id]
+    T1 --> C1["Call Cosmic API\nCreate / update quotation mirror"]
+    C1 --> S4["Update QUOTATIONS.cosmic_id"]
 
     %% NEGOSIASI
-    G1 --> CL[Client baca email,\nnegosiasi via email/call -- tanpa portal]
+    G1 --> CL["Client baca email,\nnegosiasi via email/call\n(tanpa portal)"]
 ```
 
 ---
@@ -376,28 +376,28 @@ flowchart TD
 ```mermaid
 flowchart TD
     %% DEAL
-    D1[Sales set status Quotation = ACCEPTED] --> D2[Klik 'Generate Subscription & Payment Link']
-    D2 --> B1[Backend hitung paket & seat\nberdasarkan QUOTATION_ITEMS]
+    D1["Sales set status Quotation = ACCEPTED"] --> D2["Klik 'Generate Subscription & Payment Link'"]
+    D2 --> B1["Backend hitung paket & seat\nberdasarkan QUOTATION_ITEMS"]
 
-    B1 --> S1[Buat SUBSCRIPTIONS\nstatus = PENDING_ACTIVATION]
-    S1 --> SI1[Buat SUBSCRIPTION_ITEMS per produk & quantity]
+    B1 --> S1["Buat SUBSCRIPTIONS\nstatus = PENDING_ACTIVATION"]
+    S1 --> SI1["Buat SUBSCRIPTION_ITEMS\nper produk & quantity"]
 
     %% XENDIT
-    SI1 --> X1[Call Xendit API Create Subscription / Payment Link]
-    X1 --> X2[Simpan xendit_subscription_id & payment_link_url di SUBSCRIPTIONS]
-    X2 --> BC1[Buat BILLING_CYCLES initial status = PENDING, set due_date]
+    SI1 --> X1["Call Xendit API\nCreate Subscription / Payment Link"]
+    X1 --> X2["Simpan xendit_subscription_id\n& payment_link_url\ndi SUBSCRIPTIONS"]
+    X2 --> BC1["Buat BILLING_CYCLES initial\nstatus = PENDING,\nset due_date"]
 
     %% EMAIL REQUEST INVOICE
-    BC1 --> T1[Trigger n8n: InvoiceRequestInitial]
+    BC1 --> T1["Trigger n8n: InvoiceRequestInitial"]
 
-    T1 --> AI1[Call Gemini Generate email ke Finance untuk invoice & faktur pajak]
-    AI1 --> E1[Simpan ke EMAIL_LOGS related = BILLING_CYCLES]
+    T1 --> AI1["Call Gemini\nGenerate email ke Finance\nuntuk invoice & faktur pajak"]
+    AI1 --> E1["Simpan ke EMAIL_LOGS\nrelated = BILLING_CYCLES"]
 
-    E1 --> G1[Send email via Gmail API From: Sales/ops mailbox To: Finance]
-    G1 --> BC2[Update BILLING_CYCLES, status = INVOICE_REQUESTED]
+    E1 --> G1["Send email via Gmail API\nFrom: Sales/ops mailbox\nTo: Finance"]
+    G1 --> BC2["Update BILLING_CYCLES\nstatus = INVOICE_REQUESTED"]
 
     %% FINANCE OFF-PLATFORM
-    G1 --> F1[Finance buat invoice & faktur pajak di sistem akuntansi + kirim ke client (email)]
+    G1 --> F1["Finance buat invoice & faktur pajak\ndi sistem akuntansi\n+ kirim ke client (email)"]
 ```
 
 ---
@@ -407,28 +407,28 @@ flowchart TD
 ```mermaid
 flowchart TD
     %% CLIENT PAY
-    F1[Client menerima invoice dari Finance dengan payment link Xendit] --> P1[Client bayar via ewallet/CC/VA]
-    P1 --> W1[Xendit webhook ke n8n: PaymentSucceeded]
+    F1["Client menerima invoice dari Finance\n(dengan payment link Xendit)"] --> P1["Client bayar via ewallet/CC/VA"]
+    P1 --> W1["Xendit webhook ke n8n:\nPaymentSucceeded"]
 
     %% HANDLE WEBHOOK
-    W1 --> W2[Simpan WEBHOOK_EVENTS]
-    W2 --> P2[Create / update PAYMENTS status = SUCCESS]
-    P2 --> BC1[Update BILLING_CYCLES status = PAID]
-    BC1 --> S1[Update SUBSCRIPTIONS status = ACTIVE, set start_date & next_billing_date]
+    W1 --> W2["Simpan WEBHOOK_EVENTS"]
+    W2 --> P2["Create / update PAYMENTS\nstatus = SUCCESS"]
+    P2 --> BC1["Update BILLING_CYCLES\nstatus = PAID"]
+    BC1 --> S1["Update SUBSCRIPTIONS\nstatus = ACTIVE,\nset start_date & next_billing_date"]
 
     %% CREATE PORTAL ACCOUNT
-    S1 --> C1[Jika belum ada: create USERS role=CLIENT, set CLIENTS.has_portal_account = true]
+    S1 --> C1["Jika belum ada:\ncreate USERS role=CLIENT\nset CLIENTS.has_portal_account = true"]
 
     %% CREATE WALLET
-    S1 --> W3[Jika belum ada: create WALLET_ACCOUNTS (balance=0)]
+    S1 --> W3["Jika belum ada:\ncreate WALLET_ACCOUNTS\n(balance=0)"]
 
     %% PROVISIONING GOOGLE
-    S1 --> PV1[Generate PROVISIONING_TASKS per SUBSCRIPTION_ITEMS (action = ACTIVATE)]
-    PV1 --> GW1[n8n call Google Workspace API aktifkan license/seat]
-    PV1 --> GCP1[n8n call GCP API aktifkan VM / resource]
+    S1 --> PV1["Generate PROVISIONING_TASKS\nper SUBSCRIPTION_ITEMS\n(action = ACTIVATE)"]
+    PV1 --> GW1["n8n call Google Workspace API\naktifkan license/seat"]
+    PV1 --> GCP1["n8n call GCP API\naktifkan VM / resource"]
 
     %% NOTIFIKASI CLIENT
-    GW1 --> EM1[Send email 'Welcome' + info akun & akses portal]
+    GW1 --> EM1["Send email 'Welcome' + info akun\n& akses portal"]
     GCP1 --> EM1
 ```
 
@@ -439,46 +439,46 @@ flowchart TD
 ```mermaid
 flowchart TD
     %% DAILY JOB
-    CRON[Daily cron n8n] --> B1[Ambil SUBSCRIPTIONS status = ACTIVE]
+    CRON["Daily cron n8n"] --> B1["Ambil SUBSCRIPTIONS\nstatus = ACTIVE"]
 
-    B1 --> B2[Cek next_billing_date untuk masing-masing subscription]
+    B1 --> B2["Cek next_billing_date\nuntuk masing-masing subscription"]
 
     %% H-7: BUAT BILLING CYCLE & REQUEST INVOICE
-    B2 -->|H-7 sebelum due| BC1[Create BILLING_CYCLES baru status = PENDING, period_start/end berdasarkan plan]
+    B2 -->|H-7 sebelum due| BC1["Create BILLING_CYCLES baru\nstatus = PENDING,\nperiod_start/end berdasarkan plan"]
 
-    BC1 --> T1[Trigger n8n: InvoiceRequestRecurring]
-    T1 --> AI1[Call Gemini, Generate email request invoice + faktur pajak ke Finance]
-    AI1 --> E1[Simpan EMAIL_LOGS related = BILLING_CYCLES]
+    BC1 --> T1["Trigger n8n: InvoiceRequestRecurring"]
+    T1 --> AI1["Call Gemini\nGenerate email request invoice\n+ faktur pajak ke Finance"]
+    AI1 --> E1["Simpan EMAIL_LOGS\nrelated = BILLING_CYCLES"]
 
-    E1 --> FMAIL[Send Gmail ke Finance, Body: ringkasan periode, amount, instruksi 'link pembayaran lihat di Platform']
-    FMAIL --> BC2[Update BILLING_CYCLES status = INVOICE_REQUESTED]
+    E1 --> FMAIL["Send Gmail ke Finance\nBody: ringkasan periode,\namount, instruksi 'link pembayaran lihat di Platform'"]
+    FMAIL --> BC2["Update BILLING_CYCLES\nstatus = INVOICE_REQUESTED"]
 
     %% REMINDER KE CLIENT
-    BC1 --> R1[Set jadwal email reminder]
-    R1 --> R2[Send email ke client berisi amount & link ke portal]
+    BC1 --> R1["Set jadwal email reminder\n(H-7, H-1, due date)"]
+    R1 --> R2["Send email ke client\nberisi amount & link ke portal"]
 
     %% XENDIT CHARGE RECURRING
-    R2 --> X1[Xendit melakukan auto charge pada due_date]
-    X1 -->|SUCCESS| WS[Webhook PaymentSucceeded -- Recurring]
-    X1 -->|FAILED| WF[Webhook PaymentFailed -- Recurring]
+    R2 --> X1["Xendit melakukan auto charge\npada due_date"]
+    X1 -->|SUCCESS| WS["Webhook PaymentSucceeded\n(Recurring)"]
+    X1 -->|FAILED| WF["Webhook PaymentFailed\n(Recurring)"]
 
     %% SUCCESS FLOW
-    WS --> P1[Update PAYMENTS & BILLING_CYCLES, status = SUCCESS/PAID]
-    P1 --> OK[Tidak ada perubahan layanan, next_billing_date digeser]
+    WS --> P1["Update PAYMENTS & BILLING_CYCLES\nstatus = SUCCESS/PAID"]
+    P1 --> OK["Tidak ada perubahan layanan,\nnext_billing_date di-shift"]
 
     %% FAIL FLOW
-    WF --> P2[Create/Update PAYMENTS, status = FAILED, reason from Xendit]
-    P2 --> BC_FAIL[Update BILLING_CYCLES status = FAILED]
-    BC_FAIL --> SUSP[Set SUBSCRIPTIONS.status = SUSPENDED]
-    SUSP --> PV_S[Generate PROVISIONING_TASKS, action=SUSPEND]
-    PV_S --> GW_S[n8n suspend Workspace users]
-    PV_S --> GCP_S[n8n stop spend GCP resources]
+    WF --> P2["Create/Update PAYMENTS\nstatus = FAILED,\nreason from Xendit"]
+    P2 --> BC_FAIL["Update BILLING_CYCLES\nstatus = FAILED"]
+    BC_FAIL --> SUSP["Set SUBSCRIPTIONS.status = SUSPENDED"]
+    SUSP --> PV_S["Generate PROVISIONING_TASKS\n(action=SUSPEND)"]
+    PV_S --> GW_S["n8n suspend Workspace users"]
+    PV_S --> GCP_S["n8n stop/suspend GCP resources"]
 
     %% NOTIFIKASI CLIENT & SALES
-    BC_FAIL --> EC1[Send email ke client: 'gagal debit, silakan bayar via portal'] 
-    BC_FAIL --> DUN[Job dunning: cek umur gagal]
+    BC_FAIL --> EC1["Send email ke client:\n'gagal debit, silakan bayar via portal'"] 
+    BC_FAIL --> DUN["Job dunning: cek umur gagal"]
 
-    DUN -->|gagal > N hari| NS[Send email/alert ke Sales: 'Client X pembayaran gagal berhari-hari']
+    DUN -->|gagal > N hari| NS["Send email/alert ke Sales:\n'Client X pembayaran gagal berhari-hari'"]
 ```
 
 ---
@@ -487,21 +487,21 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    XD[Xendit down / API error berat] --> UI1[Sales/Admin buka menu 'Create Manual Subscription']
+    XD["Xendit down / API error berat"] --> UI1["Sales/Admin buka menu\n'Create Manual Subscription'"]
 
-    UI1 --> UI2[Input client, produk, seat, durasi, harga, start_date]
-    UI2 --> S1[Buat SUBSCRIPTIONS\nis_manual = true, status = ACTIVE atau PENDING]
-    S1 --> SI1[Buat SUBSCRIPTION_ITEMS]
+    UI1 --> UI2["Input client, produk, seat,\ndurasi, harga, start_date"]
+    UI2 --> S1["Buat SUBSCRIPTIONS\nis_manual = true,\nstatus = ACTIVE atau PENDING"]
+    S1 --> SI1["Buat SUBSCRIPTION_ITEMS"]
 
     %% OPTIONAL: KONFIRMASI PEMBAYARAN OFFLINE
-    SI1 --> F1[Finance konfirmasi pembayaran manual (di luar Xendit)]
-    F1 --> BC1[Create BILLING_CYCLES\nstatus = PAID (bila sudah dibayar)]
+    SI1 --> F1["Finance konfirmasi pembayaran manual\n(di luar Xendit)"]
+    F1 --> BC1["Create BILLING_CYCLES\nstatus = PAID\n(bila sudah dibayar)"]
 
-    BC1 --> S2[Set SUBSCRIPTIONS.status = ACTIVE]
-    S2 --> PV1[Generate PROVISIONING_TASKS, action = ACTIVATE]
-    PV1 --> GW1[Aktifkan Workspace]
-    PV1 --> GCP1[Aktifkan GCP]
+    BC1 --> S2["Set SUBSCRIPTIONS.status = ACTIVE"]
+    S2 --> PV1["Generate PROVISIONING_TASKS\n(action = ACTIVATE)"]
+    PV1 --> GW1["Aktifkan Workspace"]
+    PV1 --> GCP1["Aktifkan GCP"]
 
     %% KETIKA XENDIT PULIH (OPSIONAL)
-    S2 --> OPT[Opsional: sinkronkan ke Xendit bila ingin auto-billing ke depan]
+    S2 --> OPT["Opsional: sinkronkan ke Xendit\nbila ingin auto-billing ke depan"]
 ```
