@@ -1,4 +1,4 @@
-'''mermaid
+```mermaid
 erDiagram
     CLIENTS {
         int id
@@ -234,4 +234,4 @@ erDiagram
     SUBSCRIPTION_ITEMS ||--o{ PROVISIONING_TASKS : "triggers"
 
     WEBHOOK_EVENTS ||--o{ PAYMENTS : "creates/updates"
-'''
+```
