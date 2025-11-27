@@ -162,6 +162,7 @@ erDiagram
     WALLET_ACCOUNTS ||--o{ WALLET_TRANSACTIONS : "has"
 
     SUBSCRIPTION_ITEMS ||--o{ PROVISIONING_TASKS : "triggers"
-```
+
     BILLING_CYCLES ||--o{ EMAIL_LOGS : "invoice request / reminder"
     QUOTATIONS ||--o{ EMAIL_LOGS : "quotation emails"
+```
