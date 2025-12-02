@@ -1,3 +1,9 @@
+# CloudSales
+
+Backend monolith (FastAPI + PostgreSQL + SQLAlchemy + Alembic)
+for subscription & billing platform.
+
+
 ```mermaid
 erDiagram
     CLIENTS {
